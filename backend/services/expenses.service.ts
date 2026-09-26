@@ -1,54 +1,42 @@
 import fs from "fs";
 import type { Expense, NewExpense } from "../types/expense.ts";
+import { db } from '../src/prisma/db.ts';
 
 export class ExpensesService {
 
-  private static dataPath = "./data/expenses.json";
-  private static resetPath = "./data/expenses.init.json";
+  // private static dataPath = "./data/expenses.json";
+  // private static resetPath = "./data/expenses.init.json";
   
-  public static getExpenses(): Expense[] {
-    return this.readExpenses();
+  public static async getExpenses(): Promise<Expense[]> {
+    return await this.readExpenses();
   }
   
-  public static addExpense(newExpense: NewExpense): Expense[] {
-    const expenses = this.readExpenses();
-    const expense: Expense = {
-      ...newExpense,
-      id: (expenses.length + 1).toString()
-    };
-    expenses.push(expense);
-    this.saveExpenses(expenses);
-    return expenses;
+  public static async addExpense(newExpense: NewExpense): Promise<Expense[]> {
+    await db.orm.public.Expense.create(newExpense);
+    return await this.readExpenses() ;
   }
   
-  public static resetExpenses(): Expense[] {
-    this._resetExpenses();
-    return this.readExpenses();
+  public static async resetExpenses(): Promise<Expense[]> {
+    await this._resetExpenses();
+    return await this.readExpenses();
   }
   
-  private static readExpenses(): Expense[] {
+  private static async readExpenses(): Promise<Expense[]> {
     try {
-      const data = JSON.parse(fs.readFileSync(this.dataPath, "utf-8"));
-      return data;
+      const data = await db.orm.public.Expense.all();
+      return data.map((item) => ({
+        ...item,
+        id:String(item.id),
+      })) as Expense[];
     } catch (error) {
       console.error("Error reading expenses file:", error);
       throw error;
     }
   }
-  
-  private static saveExpenses(expenses: Expense[]): void {
-    try {
-      fs.writeFileSync(this.dataPath, JSON.stringify(expenses, null, 2));
-    } catch (error) {
-      console.error("Error saving expenses file:", error);
-      throw error;
-    }
-  }
 
-  private static _resetExpenses(): void {
+  private static async _resetExpenses(): Promise<void> {
     try {
-      const defaultExpenses: Expense[] = JSON.parse(fs.readFileSync(this.resetPath, "utf-8"));
-      fs.writeFileSync(this.dataPath, JSON.stringify(defaultExpenses, null, 2));
+      await db.orm.public.Expense.where({}).deleteAll();
     } catch (error) {
       console.error("Error resetting expenses file:", error);
       throw error;
