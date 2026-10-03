@@ -8,7 +8,7 @@ interface UseExpensesResult {
   expenses: Expense[];
   loading: boolean;
   error: string | null;
-  addExpense: (expense: Expense) => Promise<void>;
+  addExpense: (expense: NewExpense) => Promise<void>;
   resetExpenses: () => Promise<void>;
 }
 
