@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import type { Expense } from '../types/Expense';
+import type { Expense, NewExpense } from '../types/Expense';
 
 //const API_BASE_URL = 'http://localhost:3000/api';
 const host = import.meta.env.VITE_API_URL || 'http://unknown-api-url.com';
@@ -44,8 +44,9 @@ function useExpenses(): UseExpensesResult {
   }, [fetchExpenses]);
 
   const addExpense = useCallback(
-    async (expense: Expense) => {
+    async (expense: NewExpense) => {
       try {
+        // console.log("before: "+JSON.stringify(expense));
         setError(null);
         const response = await fetch(`${host}/api/expenses`, {
           method: 'POST',
